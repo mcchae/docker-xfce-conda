@@ -1,0 +1,10 @@
+version: '2'
+services:
+  mydt:
+    image: "mcchae/xfce-conda"
+    hostname: "mydt"
+    ports:
+     - "33899:3389"
+     - "60811:6081"
+    volumes:
+     - ${HOME}/dhv/toor:/home/toor
