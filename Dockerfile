@@ -1,85 +1,64 @@
 # FROM mcchae/jdk8
-FROM mcchae/conda-jdk8
+#FROM mcchae/conda-jdk8
+FROM mcchae/xfce
 MAINTAINER MoonChang Chae mcchae@gmail.com
 LABEL Description="alpine desktop env with conda (over xfce with novnc, xrdp and openssh server)"
 
-ENV LANG=ko_KR.UTF-8 \
-    LANGUAGE=ko_KR.UTF-8 \
-    LC_CTYPE=ko_KR.UTF-8 \
-    LC_ALL=ko_KR.UTF-8
+# install openjdk8
+RUN { \
+        echo '#!/bin/sh'; \
+        echo 'set -e'; \
+        echo; \
+        echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; \
+    } > /usr/local/bin/docker-java-home \
+    && chmod +x /usr/local/bin/docker-java-home
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
+ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
 
-# ADD chroot  /
-ADD chroot/tmp /tmp
-RUN cp /tmp/apk/.abuild/-57cfc5fa.rsa.pub /etc/apk/keys
+ENV JAVA_VERSION 8u131
+ENV JAVA_ALPINE_VERSION 8.131.11-r2
 
-# for hangul using uim from source
-WORKDIR /tmp/src
-RUN apk --update add --virtual build-dependencies \
-        alpine-sdk  gtk+2.0-dev gtk+3.0-dev qt-dev \
-    && tar xvfj uim-1.8.6.tar.bz2 \
-    && cd uim-1.8.6 \
-    &&    ./configure --prefix=/usr \
-    &&    make \
-    &&    make install \
-    && cd .. \
-    && apk del build-dependencies
+RUN set -x \
+    && apk add --no-cache \
+        openjdk8="$JAVA_ALPINE_VERSION" \
+    && [ "$JAVA_HOME" = "$(docker-java-home)" ]
 
-WORKDIR /
-RUN apk --update --no-cache add \
-        vim git \
-        xrdp xvfb xfce4 slim \
-        xf86-input-synaptics xf86-input-mouse xf86-input-keyboard \
-        setxkbmap sudo util-linux dbus udev xauth supervisor \
-        firefox-esr \
-        wget curl tmux \
-    && rm -f /usr/bin/vi && ln -s /usr/bin/vim /usr/bin/vi \
-    && apk add /tmp/apk/ossp-uuid-1.6.2-r0.apk \
-    && apk add /tmp/apk/ossp-uuid-dev-1.6.2-r0.apk \
-    && apk add /tmp/apk/x11vnc-0.9.13-r0.apk \
-    && cp -f /tmp/bin/tini-static-amd64 /bin/tini \
-    && chmod  +x /bin/tini \
-    && rm -rf /tmp/* /var/cache/apk/*
+## conda need glibc instead of musl libc
+#RUN apk --update  --repository http://dl-4.alpinelinux.org/alpine/edge/community add \
+#    bash \
+#    git \
+#    curl \
+#    ca-certificates \
+#    bzip2 \
+#    unzip \
+#    sudo \
+#    libstdc++ \
+#    glib \
+#    libxext \
+#    libxrender \
+#    && curl -L "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.25-r0/glibc-2.25-r0.apk" -o /tmp/glibc.apk \
+#    && curl -L "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.25-r0/glibc-bin-2.25-r0.apk" -o /tmp/glibc-bin.apk \
+#    && curl -L "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.25-r0/glibc-i18n-2.25-r0.apk" -o /tmp/glibc-i18n.apk \
+#    && apk add --allow-untrusted /tmp/glibc*.apk \
+#    && /usr/glibc-compat/sbin/ldconfig /lib /usr/glibc-compat/lib \
+#    && /usr/glibc-compat/bin/localedef -i ko_KR -f UTF-8 ko_KR.UTF-8 \
+#    && rm -rf /tmp/glibc*apk /var/cache/apk/*
+#
+## Configure environment
+#ENV CONDA_DIR=/opt/conda CONDA_VER=4.3.14
+#ENV PATH=$CONDA_DIR/bin:$PATH SHELL=/bin/bash LANG=C.UTF-8
+#
+## Install conda
+## ENV LD_TRACE_LOADED_OBJECTS=1
+#RUN mkdir -p $CONDA_DIR \
+#    && echo export PATH=$CONDA_DIR/bin:'$PATH' > /etc/profile.d/conda.sh \
+#    && curl https://repo.continuum.io/miniconda/Miniconda3-${CONDA_VER}-Linux-x86_64.sh  -o mconda.sh \
+#    && /bin/bash mconda.sh -f -b -p $CONDA_DIR \
+#    && rm mconda.sh \
+#    && $CONDA_DIR/bin/conda install --yes conda==${CONDA_VER} \
+#    && sed -i -e "s|^export PATH=|export PATH=/opt/conda/bin:|g" /etc/profile
 
-ADD chroot/etc /etc
-ADD chroot/usr /usr
-
-RUN for ic in `find /usr/share/icons/* -type d -maxdepth 0`;do gtk-update-icon-cache -ft $ic; done
-
-RUN xrdp-keygen xrdp auto
-RUN sed -i '/TerminalServerUsers/d' /etc/xrdp/sesman.ini \
-    && sed -i '/TerminalServerAdmins/d' /etc/xrdp/sesman.ini
-
-EXPOSE 3389 22
-
-WORKDIR /
-
-ENV PYTHON_PIP_VERSION 9.0.1
-RUN set -ex; \
-    apk add --no-cache --virtual .fetch-deps libressl; \
-    wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
-    apk del .fetch-deps; \
-    /usr/bin/python get-pip.py \
-        --disable-pip-version-check \
-        --no-cache-dir \
-        "pip==$PYTHON_PIP_VERSION" \
-    ; \
-    pip --version; \
-    find /usr/local -depth \
-        \( \
-            \( -type d -a \( -name test -o -name tests \) \) \
-            -o \
-            \( -type f -a \( -name '*.pyc' -o -name '*.pyo' \) \) \
-        \) -exec rm -rf '{}' +; \
-    rm -f get-pip.py
-
-RUN apk --update add --virtual build-dependencies \
-        python-dev build-base linux-headers \
-    && /usr/bin/pip install setuptools wheel \
-    && /usr/bin/pip install -r /usr/lib/web/requirements.txt \
-    && apk del build-dependencies
-
-EXPOSE 6081
-
+# pycharm
 WORKDIR /tmp
 ENV PYCHARM_VER pycharm-community-2017.2
 RUN wget https://download.jetbrains.com/python/$PYCHARM_VER.tar.gz \
@@ -92,7 +71,8 @@ RUN wget https://download.jetbrains.com/python/$PYCHARM_VER.tar.gz \
 
 WORKDIR /
 
-ADD chroot/startup.sh /
-ENV HOME=/home/toor \
-    SHELL=/bin/bash
-ENTRYPOINT ["bash", "/startup.sh"]
+ADD chroot/usr /usr
+
+#ENV HOME=/home/toor \
+#    SHELL=/bin/bash
+#ENTRYPOINT ["bash", "/startup.sh"]
