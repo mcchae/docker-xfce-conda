@@ -4,7 +4,9 @@ FROM mcchae/xfce
 MAINTAINER MoonChang Chae mcchae@gmail.com
 LABEL Description="alpine desktop env with conda (over xfce with novnc, xrdp and openssh server)"
 
+################################################################################
 # install openjdk8
+################################################################################
 RUN { \
         echo '#!/bin/sh'; \
         echo 'set -e'; \
@@ -23,7 +25,9 @@ RUN set -x \
         openjdk8="$JAVA_ALPINE_VERSION" \
     && [ "$JAVA_HOME" = "$(docker-java-home)" ]
 
+################################################################################
 # pycharm
+################################################################################
 WORKDIR /tmp
 ENV PYCHARM_VER pycharm-community-2017.2
 RUN wget https://download.jetbrains.com/python/$PYCHARM_VER.tar.gz \
@@ -36,7 +40,9 @@ RUN wget https://download.jetbrains.com/python/$PYCHARM_VER.tar.gz \
 
 WORKDIR /
 
+################################################################################
 # conda need glibc instead of musl libc
+################################################################################
 RUN apk --update  --repository http://dl-4.alpinelinux.org/alpine/edge/community add \
     bash \
     git \
@@ -57,7 +63,9 @@ RUN apk --update  --repository http://dl-4.alpinelinux.org/alpine/edge/community
     && /usr/glibc-compat/bin/localedef -i ko_KR -f UTF-8 ko_KR.UTF-8 \
     && rm -rf /tmp/glibc*apk /var/cache/apk/*
 
+################################################################################
 ## package prepare for conda
+################################################################################
 #RUN apk add --no-cache --update \
 #      bash \
 #      build-base \
@@ -78,7 +86,9 @@ RUN apk --update  --repository http://dl-4.alpinelinux.org/alpine/edge/community
 ENV CONDA_DIR=/opt/conda CONDA_VER=4.0.5
 ENV PATH=$CONDA_DIR/bin:$PATH SHELL=/bin/bash LANG=C.UTF-8
 
+################################################################################
 # Install conda
+################################################################################
 # ENV LD_TRACE_LOADED_OBJECTS=1
 RUN mkdir -p $CONDA_DIR \
     && echo export PATH=$CONDA_DIR/bin:'$PATH' > /etc/profile.d/conda.sh \
