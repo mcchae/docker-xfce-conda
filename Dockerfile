@@ -57,6 +57,22 @@ RUN apk --update  --repository http://dl-4.alpinelinux.org/alpine/edge/community
     && /usr/glibc-compat/bin/localedef -i ko_KR -f UTF-8 ko_KR.UTF-8 \
     && rm -rf /tmp/glibc*apk /var/cache/apk/*
 
+# package prepare for conda
+RUN apk add --no-cache --update \
+      bash \
+      build-base \
+      ca-certificates \
+      git \
+      bzip2-dev \
+      linux-headers \
+      ncurses-dev \
+      openssl \
+      openssl-dev \
+      readline-dev \
+      sqlite-dev \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
 # Configure environment
 # above 4.0.5 has been failed in alpine
 ENV CONDA_DIR=/opt/conda CONDA_VER=4.0.5
@@ -72,12 +88,4 @@ RUN mkdir -p $CONDA_DIR \
     && $CONDA_DIR/bin/conda install --yes conda==${CONDA_VER} \
     && sed -i -e "s|^export PATH=|export PATH=/opt/conda/bin:|g" /etc/profile
 
-
-
-
 ADD chroot/usr /usr
-
-### next are defiened in mcchae/xfce Dockerfile
-#ENV HOME=/home/toor \
-#    SHELL=/bin/bash
-#ENTRYPOINT ["bash", "/startup.sh"]
