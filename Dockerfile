@@ -77,6 +77,3 @@ RUN mkdir -p $CONDA_DIR \
 
 ADD chroot/usr /usr
 
-#ENV HOME=/home/toor \
-#    SHELL=/bin/bash
-#ENTRYPOINT ["bash", "/startup.sh"]
