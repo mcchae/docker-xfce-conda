@@ -1,5 +1,3 @@
-# FROM mcchae/jdk8
-#FROM mcchae/conda-jdk8
 FROM mcchae/xfce
 MAINTAINER MoonChang Chae mcchae@gmail.com
 LABEL Description="alpine desktop env with ide (over xfce with novnc, xrdp and openssh server)"
@@ -37,4 +35,6 @@ RUN wget https://download.jetbrains.com/python/$PYCHARM_VER.tar.gz \
     && rm -f /usr/local/pycharm \
     && rm -rf /usr/local/$PYCHARM_VER/jre64 \
     && ln -s /usr/local/$PYCHARM_VER /usr/local/pycharm
+
+ADD chroot/usr /usr
 

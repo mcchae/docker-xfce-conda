@@ -1,7 +1,7 @@
 version: '2'
 services:
   mydt:
-    image: "mcchae/xfce-conda"
+    image: "mcchae/ide"
     hostname: "mydt"
     ports:
       - "33899:3389"
