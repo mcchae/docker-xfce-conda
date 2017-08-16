@@ -58,6 +58,8 @@ services:
 > * `6081` 포트는 외부로 노출될 noVNC 포트입니다. (위의 예에서는 60811 포트로 접근 가능합니다)
 > * docker를 돌리는 호스트에 `$HOME/dhv`라는 폴더가 있고 이 폴더에 있는 `toor` 디렉터리가 docker 컨테이너의 `/home/toor` 디렉터리로 볼륨 마운트되어 toor 홈 폴더는 영속성을 갖습니다
 > * `$HOME/work` 라는 폴더에 모든 프로젝트가 있고 작업을 하는데 이것이 컨테이너의 `/home/toor/work`로 볼륨 마운트되어 프로젝트 작업을 합니다
+> * 윈도우인 경우에는 볼륨 마운트에서 `//c/Users/mcchae/dhv/toor:/home/toor` (사용자가 mcchae 라고 가정) 와 같은 방식으로 마운트 합니다. (윈도우 docker가 디폴트로 해당 사용자 부분을 마운트 가능하도록 해 놓았습니다)
+
 
 그 다음, 다음과 같이 실행합니다.
 
@@ -110,19 +112,12 @@ Current conda install:
 
 위에서 envs를 확인해 보면 현재 홈(`/home/toor`) 안에 `.conda/envs` 를 같이 참조함을 알 수 있습니다.
 
-따라서,
-
-```sh
-$ mkdir -p /home/toor/.conda/pkgs
-```
-라고 처음에 한번 해당 폴더를 생성해 줍니다.
-
 #### create
 
 다음과 같이 py36 이라는 환경을 만들어봅니다.
 
 ```sh
-$ conda create -p /home/toor/.conda/envs/py36 python=3.6
+$ conda create -n py36 python=3.6
 ```
 
 #### info env
