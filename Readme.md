@@ -6,6 +6,7 @@
 
 * openjdk8 : alpine용 openjdk 버전 8을 설치하였습니다.
 * pyCharm : Community Edition 2017.2 버전의 pyCharm IDE를 설치하였습니다.
+* conda : miniconda 4.0.5 (alpine에서 설치될 수 있는 최신 버전)
 
 
 ## 사용법
