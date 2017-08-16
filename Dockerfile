@@ -97,3 +97,4 @@ RUN mkdir -p $CONDA_DIR \
     && sed -i -e "s|^export PATH=|export PATH=/opt/conda/bin:|g" /etc/profile
 
 ADD chroot/usr /usr
+
